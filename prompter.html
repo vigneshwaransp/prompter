@@ -1,0 +1,1038 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prompter — The Codex of Prompting Techniques</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700;9..144,900&family=IBM+Plex+Mono:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0c0b09;
+  --ink-2:#15130f;
+  --parchment:#ece4d3;
+  --parchment-dim:#bdb29c;
+  --gold:#c9a356;
+  --gold-bright:#e8c878;
+  --rust:#a8492e;
+  --rust-bright:#d35b3c;
+  --line:#3a3528;
+  --line-soft:#262217;
+  --green-ok:#7a9b6e;
+  --serif-display:'Fraunces', serif;
+  --serif-body:'Source Serif 4', serif;
+  --mono:'IBM Plex Mono', monospace;
+}
+
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+
+body{
+  background:
+    radial-gradient(ellipse 1200px 800px at 50% -10%, #1d1a13 0%, var(--ink) 55%),
+    var(--ink);
+  color:var(--parchment);
+  font-family:var(--serif-body);
+  min-height:100vh;
+  position:relative;
+  overflow-x:hidden;
+}
+
+/* grain overlay */
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:999;
+  opacity:0.05;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  mix-blend-mode:overlay;
+}
+
+.frame{
+  max-width:1180px;
+  margin:0 auto;
+  padding:0 28px 100px;
+  position:relative;
+}
+
+/* ===== HEADER ===== */
+header{
+  padding:56px 0 40px;
+  text-align:center;
+  position:relative;
+  border-bottom:1px solid var(--line);
+  margin-bottom:48px;
+}
+
+.sigil{
+  width:54px;height:54px;
+  margin:0 auto 22px;
+  position:relative;
+}
+.sigil svg{width:100%;height:100%;}
+
+.eyebrow{
+  font-family:var(--mono);
+  font-size:11px;
+  letter-spacing:0.32em;
+  text-transform:uppercase;
+  color:var(--gold);
+  margin-bottom:18px;
+}
+.eyebrow::before, .eyebrow::after{ content:"✦"; margin:0 12px; color:var(--rust-bright); font-size:9px; vertical-align:middle;}
+
+h1.title{
+  font-family:var(--serif-display);
+  font-optical-sizing:auto;
+  font-weight:900;
+  font-size:clamp(48px, 8vw, 92px);
+  line-height:0.95;
+  margin:0 0 14px;
+  letter-spacing:-0.01em;
+  background:linear-gradient(180deg, var(--gold-bright) 0%, var(--gold) 45%, #8a6a30 100%);
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+  text-shadow:0 1px 0 rgba(0,0,0,0.3);
+}
+
+.subtitle{
+  font-family:var(--serif-body);
+  font-style:italic;
+  font-size:18px;
+  color:var(--parchment-dim);
+  max-width:560px;
+  margin:0 auto;
+  line-height:1.5;
+}
+
+.subtitle b{ color:var(--parchment); font-weight:600; font-style:normal; }
+
+/* ===== LAYOUT ===== */
+.altar{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:36px;
+}
+
+.panel{
+  background:linear-gradient(160deg, var(--ink-2) 0%, #110f0b 100%);
+  border:1px solid var(--line);
+  border-radius:4px;
+  position:relative;
+}
+.panel::before{
+  content:"";
+  position:absolute; inset:0;
+  border-radius:4px;
+  box-shadow: inset 0 1px 0 rgba(232,200,120,0.06), inset 0 0 60px rgba(168,73,46,0.04);
+  pointer-events:none;
+}
+
+.panel-head{
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+  padding:22px 28px 0;
+}
+
+.panel-num{
+  font-family:var(--mono);
+  font-size:11px;
+  color:var(--rust-bright);
+  letter-spacing:0.1em;
+}
+
+.panel-title{
+  font-family:var(--serif-display);
+  font-weight:700;
+  font-size:22px;
+  color:var(--parchment);
+  margin:4px 0 0;
+}
+
+.panel-body{ padding:20px 28px 28px; }
+
+/* ===== STEP 1: INPUT ===== */
+textarea#userIntent{
+  width:100%;
+  min-height:120px;
+  background:var(--ink);
+  border:1px solid var(--line);
+  border-radius:3px;
+  color:var(--parchment);
+  font-family:var(--serif-body);
+  font-size:16px;
+  line-height:1.6;
+  padding:16px 18px;
+  resize:vertical;
+  transition:border-color .25s ease, box-shadow .25s ease;
+}
+textarea#userIntent::placeholder{ color:#5e5848; font-style:italic; }
+textarea#userIntent:focus{
+  outline:none;
+  border-color:var(--gold);
+  box-shadow:0 0 0 3px rgba(201,163,86,0.12);
+}
+
+.field-row{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:16px;
+  margin-top:16px;
+}
+@media (max-width:640px){ .field-row{ grid-template-columns:1fr; } }
+
+.field-label{
+  display:block;
+  font-family:var(--mono);
+  font-size:10.5px;
+  letter-spacing:0.14em;
+  text-transform:uppercase;
+  color:var(--parchment-dim);
+  margin-bottom:7px;
+}
+
+input[type=text], input[type=number]{
+  width:100%;
+  background:var(--ink);
+  border:1px solid var(--line);
+  border-radius:3px;
+  color:var(--parchment);
+  font-family:var(--serif-body);
+  font-size:14.5px;
+  padding:11px 14px;
+  transition:border-color .25s ease;
+}
+input[type=text]::placeholder{ color:#5e5848; font-style:italic; }
+input[type=text]:focus, input[type=number]:focus{
+  outline:none;
+  border-color:var(--gold);
+}
+
+/* ===== STEP 2: TECHNIQUE GRID ===== */
+.tech-grid{
+  display:grid;
+  grid-template-columns:repeat(3, 1fr);
+  gap:12px;
+}
+@media (max-width:900px){ .tech-grid{ grid-template-columns:repeat(2, 1fr); } }
+@media (max-width:560px){ .tech-grid{ grid-template-columns:1fr; } }
+
+.tech-card{
+  background:var(--ink);
+  border:1px solid var(--line);
+  border-radius:3px;
+  padding:16px 16px 14px;
+  cursor:pointer;
+  position:relative;
+  transition:transform .18s ease, border-color .18s ease, background .18s ease;
+  text-align:left;
+}
+.tech-card:hover{
+  border-color:var(--gold);
+  transform:translateY(-2px);
+}
+.tech-card.active{
+  border-color:var(--rust-bright);
+  background:linear-gradient(160deg, #1d140d 0%, var(--ink) 100%);
+  box-shadow:0 0 0 1px var(--rust-bright), 0 8px 24px -8px rgba(168,73,46,0.5);
+}
+.tech-card.active::after{
+  content:"✓ INVOKED";
+  position:absolute;
+  top:10px; right:10px;
+  font-family:var(--mono);
+  font-size:9px;
+  letter-spacing:0.08em;
+  color:var(--rust-bright);
+}
+
+.tech-numeral{
+  font-family:var(--mono);
+  font-size:10px;
+  color:var(--parchment-dim);
+  letter-spacing:0.1em;
+  margin-bottom:8px;
+  display:block;
+}
+
+.tech-name{
+  font-family:var(--serif-display);
+  font-weight:700;
+  font-size:17px;
+  color:var(--parchment);
+  margin:0 0 6px;
+}
+.tech-card.active .tech-name{ color:var(--gold-bright); }
+
+.tech-desc{
+  font-size:13px;
+  color:var(--parchment-dim);
+  line-height:1.45;
+  margin:0;
+}
+
+/* difficulty / use marks */
+.tech-meta{
+  margin-top:10px;
+  display:flex;
+  gap:6px;
+  flex-wrap:wrap;
+}
+.tag{
+  font-family:var(--mono);
+  font-size:9.5px;
+  letter-spacing:0.04em;
+  padding:3px 7px;
+  border-radius:2px;
+  background:var(--line-soft);
+  color:var(--parchment-dim);
+  border:1px solid var(--line);
+}
+
+/* ===== STEP 3: GENERATE / OUTPUT ===== */
+.generate-bar{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  margin:40px 0;
+  position:relative;
+}
+.generate-bar::before, .generate-bar::after{
+  content:"";
+  flex:1;
+  height:1px;
+  background:linear-gradient(90deg, transparent, var(--line));
+}
+.generate-bar::after{ background:linear-gradient(90deg, var(--line), transparent); }
+
+.btn-generate{
+  font-family:var(--mono);
+  font-size:13px;
+  letter-spacing:0.18em;
+  text-transform:uppercase;
+  background:linear-gradient(180deg, var(--rust-bright), var(--rust));
+  color:#fff3e8;
+  border:none;
+  border-radius:3px;
+  padding:16px 38px;
+  margin:0 24px;
+  cursor:pointer;
+  position:relative;
+  white-space:nowrap;
+  box-shadow:0 10px 30px -8px rgba(168,73,46,0.6), inset 0 1px 0 rgba(255,255,255,0.15);
+  transition:transform .15s ease, box-shadow .15s ease;
+}
+.btn-generate:hover{ transform:translateY(-1px); box-shadow:0 14px 34px -8px rgba(168,73,46,0.75), inset 0 1px 0 rgba(255,255,255,0.2); }
+.btn-generate:active{ transform:translateY(1px); }
+.btn-generate:disabled{ opacity:0.4; cursor:not-allowed; transform:none; }
+
+.output-wrap{ display:none; }
+.output-wrap.show{ display:block; animation:reveal .5s ease; }
+@keyframes reveal{ from{ opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
+
+.output-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:baseline;
+  flex-wrap:wrap;
+  gap:10px;
+  margin-bottom:14px;
+}
+
+.output-label{
+  font-family:var(--mono);
+  font-size:11px;
+  letter-spacing:0.14em;
+  text-transform:uppercase;
+  color:var(--gold);
+}
+
+.output-actions{ display:flex; gap:10px; }
+.btn-mini{
+  font-family:var(--mono);
+  font-size:11px;
+  letter-spacing:0.06em;
+  background:transparent;
+  border:1px solid var(--line);
+  color:var(--parchment-dim);
+  padding:8px 14px;
+  border-radius:3px;
+  cursor:pointer;
+  transition:all .2s ease;
+}
+.btn-mini:hover{ border-color:var(--gold); color:var(--gold-bright); }
+.btn-mini.copied{ border-color:var(--green-ok); color:var(--green-ok); }
+
+pre#output{
+  background:var(--ink);
+  border:1px solid var(--line);
+  border-left:3px solid var(--rust-bright);
+  border-radius:3px;
+  padding:24px 26px;
+  font-family:var(--mono);
+  font-size:13.5px;
+  line-height:1.7;
+  color:var(--parchment);
+  white-space:pre-wrap;
+  word-wrap:break-word;
+  max-height:560px;
+  overflow-y:auto;
+}
+pre#output::-webkit-scrollbar{ width:8px; }
+pre#output::-webkit-scrollbar-track{ background:var(--ink); }
+pre#output::-webkit-scrollbar-thumb{ background:var(--line); border-radius:4px; }
+
+.output-footnote{
+  margin-top:14px;
+  font-size:13px;
+  font-style:italic;
+  color:var(--parchment-dim);
+  line-height:1.6;
+  border-top:1px dashed var(--line);
+  padding-top:14px;
+}
+.output-footnote b{ font-style:normal; color:var(--gold); font-family:var(--mono); font-size:11px; letter-spacing:0.05em;}
+
+/* dynamic extra inputs (few-shot examples, ToT branches) */
+.dynamic-block{
+  margin-top:16px;
+  padding-top:16px;
+  border-top:1px dashed var(--line);
+  display:none;
+}
+.dynamic-block.show{ display:block; animation:reveal .4s ease; }
+
+.example-row{
+  display:grid;
+  grid-template-columns:1fr 1fr auto;
+  gap:10px;
+  margin-bottom:10px;
+}
+@media (max-width:700px){ .example-row{ grid-template-columns:1fr; } }
+.example-row input{ font-size:13.5px; }
+.btn-remove{
+  background:transparent;
+  border:1px solid var(--line);
+  color:var(--rust-bright);
+  border-radius:3px;
+  cursor:pointer;
+  font-family:var(--mono);
+  font-size:12px;
+  padding:0 12px;
+}
+.btn-remove:hover{ border-color:var(--rust-bright); background:rgba(168,73,46,0.1); }
+
+.btn-add{
+  background:transparent;
+  border:1px dashed var(--line);
+  color:var(--parchment-dim);
+  border-radius:3px;
+  cursor:pointer;
+  font-family:var(--mono);
+  font-size:12px;
+  letter-spacing:0.05em;
+  padding:9px 16px;
+  margin-top:4px;
+  transition:all .2s ease;
+}
+.btn-add:hover{ border-color:var(--gold); color:var(--gold-bright); }
+
+footer{
+  text-align:center;
+  margin-top:60px;
+  font-family:var(--mono);
+  font-size:11px;
+  letter-spacing:0.1em;
+  color:#544f3e;
+  text-transform:uppercase;
+}
+footer span{ color:var(--rust-bright); }
+</style>
+</head>
+<body>
+
+<div class="frame">
+
+  <header>
+    <div class="sigil">
+      <svg viewBox="0 0 54 54" fill="none">
+        <circle cx="27" cy="27" r="25" stroke="#c9a356" stroke-width="1.2" opacity="0.6"/>
+        <path d="M27 6 L41 27 L27 48 L13 27 Z" stroke="#d35b3c" stroke-width="1.4" fill="none"/>
+        <circle cx="27" cy="27" r="5.5" fill="#c9a356" opacity="0.85"/>
+        <path d="M27 12 V42 M12 27 H42" stroke="#c9a356" stroke-width="0.6" opacity="0.4"/>
+      </svg>
+    </div>
+    <div class="eyebrow">A Codex of Reasoning Rites</div>
+    <h1 class="title">PROMPTER</h1>
+    <p class="subtitle">The godfather of every prompt that ever worked. State your intent below, choose a <b>technique</b> from the old texts, and the Codex shall forge your template.</p>
+  </header>
+
+  <div class="altar">
+
+    <!-- STEP 1 -->
+    <div class="panel">
+      <div class="panel-head">
+        <span class="panel-num">I.</span>
+      </div>
+      <div class="panel-body">
+        <h2 class="panel-title">Declare Your Intent</h2>
+        <textarea id="userIntent" placeholder="e.g. Write a function that detects credit card fraud from transaction logs, or: Draft a cold outreach email for a B2B SaaS product..."></textarea>
+
+        <div class="field-row">
+          <div>
+            <label class="field-label">Persona / Role (optional)</label>
+            <input type="text" id="personaInput" placeholder="e.g. Senior backend engineer, veteran copywriter...">
+          </div>
+          <div>
+            <label class="field-label">Output Format (optional)</label>
+            <input type="text" id="formatInput" placeholder="e.g. JSON, bullet list, 3 paragraphs...">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 2 -->
+    <div class="panel">
+      <div class="panel-head">
+        <span class="panel-num">II.</span>
+      </div>
+      <div class="panel-body">
+        <h2 class="panel-title">Choose Your Rite</h2>
+        <div class="tech-grid" id="techGrid"></div>
+
+        <!-- Few-shot dynamic examples -->
+        <div class="dynamic-block" id="fewShotBlock">
+          <label class="field-label">Examples (input → output pairs)</label>
+          <div id="exampleRows"></div>
+          <button class="btn-add" id="addExampleBtn" type="button">+ Add Example</button>
+        </div>
+
+        <!-- One-shot dynamic example -->
+        <div class="dynamic-block" id="oneShotBlock">
+          <label class="field-label">The One Example</label>
+          <div class="example-row" style="grid-template-columns:1fr 1fr;">
+            <input type="text" id="oneShotIn" placeholder="Example input">
+            <input type="text" id="oneShotOut" placeholder="Example output">
+          </div>
+        </div>
+
+        <!-- ToT branches -->
+        <div class="dynamic-block" id="totBlock">
+          <label class="field-label">Number of Reasoning Branches</label>
+          <input type="number" id="totBranches" min="2" max="6" value="3" style="max-width:120px;">
+        </div>
+
+        <!-- ReAct tools -->
+        <div class="dynamic-block" id="reactBlock">
+          <label class="field-label">Available Tools (comma-separated)</label>
+          <input type="text" id="reactTools" placeholder="e.g. web_search, calculator, database_query">
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="generate-bar">
+    <button class="btn-generate" id="generateBtn">⚡ Forge the Prompt</button>
+  </div>
+
+  <div class="panel output-wrap" id="outputWrap">
+    <div class="panel-body">
+      <div class="output-head">
+        <span class="output-label" id="outputLabel">III. The Forged Prompt</span>
+        <div class="output-actions">
+          <button class="btn-mini" id="copyBtn">Copy</button>
+          <button class="btn-mini" id="downloadBtn">Download .txt</button>
+        </div>
+      </div>
+      <pre id="output"></pre>
+      <div class="output-footnote" id="outputFootnote"></div>
+    </div>
+  </div>
+
+  <footer>Prompter <span>·</span> Forged client-side <span>·</span> No data leaves your browser</footer>
+
+</div>
+
+<script>
+const TECHNIQUES = [
+  {
+    id:'zero-shot',
+    numeral:'01',
+    name:'Zero-Shot',
+    desc:"Ask directly. No examples, no scaffolding — relies entirely on the model's prior knowledge.",
+    tags:['Fastest','Simple tasks'],
+  },
+  {
+    id:'one-shot',
+    numeral:'02',
+    name:'One-Shot',
+    desc:'Provide exactly one example to anchor format and tone before the real request.',
+    tags:['Format control','Light guidance'],
+  },
+  {
+    id:'few-shot',
+    numeral:'03',
+    name:'Few-Shot',
+    desc:'Provide several input→output examples so the model infers the pattern.',
+    tags:['Pattern learning','Classification'],
+  },
+  {
+    id:'cot',
+    numeral:'04',
+    name:'Chain-of-Thought',
+    desc:'Instruct the model to reason step-by-step before producing a final answer.',
+    tags:['Reasoning','Math/Logic'],
+  },
+  {
+    id:'tot',
+    numeral:'05',
+    name:'Tree-of-Thought',
+    desc:'Explore multiple reasoning branches in parallel, evaluate each, then converge on the best.',
+    tags:['Deep reasoning','Planning'],
+  },
+  {
+    id:'react',
+    numeral:'06',
+    name:'ReAct',
+    desc:'Interleave Thought → Action → Observation loops, letting the model call tools mid-reasoning.',
+    tags:['Agentic','Tool use'],
+  },
+  {
+    id:'self-consistency',
+    numeral:'07',
+    name:'Self-Consistency',
+    desc:'Sample multiple independent reasoning paths and take the majority/most consistent answer.',
+    tags:['Reliability','Ensembling'],
+  },
+  {
+    id:'persona',
+    numeral:'08',
+    name:'Role / Persona',
+    desc:'Assign the model an expert identity to shape vocabulary, priorities, and judgment.',
+    tags:['Tone control','Domain expertise'],
+  },
+  {
+    id:'least-to-most',
+    numeral:'09',
+    name:'Least-to-Most',
+    desc:'Decompose the problem into an ordered sequence of simpler sub-problems, solved one by one.',
+    tags:['Decomposition','Complex tasks'],
+  },
+  {
+    id:'generated-knowledge',
+    numeral:'10',
+    name:'Generated Knowledge',
+    desc:'First generate relevant background facts, then condition the final answer on that knowledge.',
+    tags:['Fact grounding','Two-stage'],
+  },
+  {
+    id:'meta-prompt',
+    numeral:'11',
+    name:'Meta-Prompting',
+    desc:'Ask the model to first design the ideal prompt/strategy for the task, then execute it.',
+    tags:['Self-design','Prompt engineering'],
+  },
+  {
+    id:'plan-solve',
+    numeral:'12',
+    name:'Plan-and-Solve',
+    desc:'Explicitly separate planning ("devise a plan") from execution ("carry out the plan") phases.',
+    tags:['Structured','Multi-step'],
+  },
+];
+
+const grid = document.getElementById('techGrid');
+let activeId = null;
+
+TECHNIQUES.forEach(t=>{
+  const card = document.createElement('button');
+  card.className = 'tech-card';
+  card.type = 'button';
+  card.dataset.id = t.id;
+  card.innerHTML = `
+    <span class="tech-numeral">${t.numeral}</span>
+    <h3 class="tech-name">${t.name}</h3>
+    <p class="tech-desc">${t.desc}</p>
+    <div class="tech-meta">${t.tags.map(tag=>`<span class="tag">${tag}</span>`).join('')}</div>
+  `;
+  card.addEventListener('click', ()=>{
+    document.querySelectorAll('.tech-card').forEach(c=>c.classList.remove('active'));
+    card.classList.add('active');
+    activeId = t.id;
+    updateDynamicBlocks(t.id);
+  });
+  grid.appendChild(card);
+});
+
+function updateDynamicBlocks(id){
+  document.getElementById('fewShotBlock').classList.toggle('show', id==='few-shot');
+  document.getElementById('oneShotBlock').classList.toggle('show', id==='one-shot');
+  document.getElementById('totBlock').classList.toggle('show', id==='tot');
+  document.getElementById('reactBlock').classList.toggle('show', id==='react');
+  if(id==='few-shot' && document.getElementById('exampleRows').children.length===0){
+    addExampleRow(); addExampleRow();
+  }
+}
+
+// ---- Few-shot dynamic example rows ----
+let exampleCount = 0;
+function addExampleRow(){
+  exampleCount++;
+  const row = document.createElement('div');
+  row.className = 'example-row';
+  row.innerHTML = `
+    <input type="text" placeholder="Example input ${exampleCount}" class="ex-in">
+    <input type="text" placeholder="Example output ${exampleCount}" class="ex-out">
+    <button type="button" class="btn-remove">✕</button>
+  `;
+  row.querySelector('.btn-remove').addEventListener('click', ()=> row.remove());
+  document.getElementById('exampleRows').appendChild(row);
+}
+document.getElementById('addExampleBtn').addEventListener('click', addExampleRow);
+
+// ---- Helpers ----
+function val(id){ return document.getElementById(id).value.trim(); }
+
+function wrapPersona(body){
+  const persona = val('personaInput');
+  if(!persona) return body;
+  return `You are ${persona}. Bring that expertise, vocabulary, and judgment to the task below.\n\n${body}`;
+}
+
+function wrapFormat(body){
+  const format = val('formatInput');
+  if(!format) return body;
+  return `${body}\n\n---\nRequired output format: ${format}`;
+}
+
+function finalize(body){
+  return wrapFormat(wrapPersona(body)).trim();
+}
+
+// ---- Template generators ----
+const GENERATORS = {
+
+  'zero-shot': (task)=>{
+    const body =
+`### TASK
+${task}
+
+### INSTRUCTIONS
+Answer directly and completely. Do not ask clarifying questions — make the most reasonable assumptions and state them briefly if needed.`;
+    return { prompt: finalize(body), note: "Zero-shot relies purely on the model's pretrained knowledge — no examples are given. Best for tasks the model has likely seen variations of (common writing, well-known coding patterns, general Q&A). If results feel generic or off-target, upgrade to One-Shot or Few-Shot." };
+  },
+
+  'one-shot': (task)=>{
+    const exIn = val('oneShotIn') || '[example input]';
+    const exOut = val('oneShotOut') || '[example output]';
+    const body =
+`### EXAMPLE
+Input: ${exIn}
+Output: ${exOut}
+
+### YOUR TASK
+Input: ${task}
+Output:`;
+    return { prompt: finalize(body), note: 'One-shot anchors the model to a single demonstrated format. Use it when you care more about *structure/tone* than about teaching a complex pattern — one good example often fixes formatting drift.' };
+  },
+
+  'few-shot': (task)=>{
+    const rows = Array.from(document.querySelectorAll('#exampleRows .example-row'));
+    let examplesText = '';
+    let i = 1;
+    rows.forEach(r=>{
+      const inV = r.querySelector('.ex-in').value.trim();
+      const outV = r.querySelector('.ex-out').value.trim();
+      if(inV || outV){
+        examplesText += `Example ${i}:\nInput: ${inV || '[input]'}\nOutput: ${outV || '[output]'}\n\n`;
+        i++;
+      }
+    });
+    if(!examplesText){
+      examplesText = `Example 1:\nInput: [input]\nOutput: [output]\n\nExample 2:\nInput: [input]\nOutput: [output]\n\n`;
+    }
+    const body =
+`### EXAMPLES
+${examplesText.trim()}
+
+### YOUR TASK
+Input: ${task}
+Output:`;
+    return { prompt: finalize(body), note: `Few-shot teaches the model a pattern from ${i-1>0?i-1:2} demonstrations. The more consistent and representative your examples are, the more reliable the output. Keep examples diverse enough to cover edge cases, but consistent in format.` };
+  },
+
+  'cot': (task)=>{
+    const body =
+`### TASK
+${task}
+
+### INSTRUCTIONS
+Think through this step-by-step before giving your final answer. Walk through your reasoning explicitly — break the problem into logical steps, verify each step makes sense, then arrive at a conclusion.
+
+Reasoning:
+1.
+2.
+3.
+
+Final Answer:`;
+    return { prompt: finalize(body), note: "Chain-of-Thought is most powerful for arithmetic, logic, multi-step reasoning, and anything where \"jumping to the answer\" tends to produce errors. Consider adding \"Let's think step by step\" verbatim — it remains a strong trigger phrase even in modern models." };
+  },
+
+  'tot': (task)=>{
+    const branches = parseInt(val('totBranches')) || 3;
+    let branchBlock = '';
+    for(let b=1; b<=branches; b++){
+      branchBlock += `**Branch ${b}:**\n- Approach:\n- Step-by-step reasoning:\n- Resulting answer:\n- Confidence (1-10):\n\n`;
+    }
+    const body =
+`### TASK
+${task}
+
+### INSTRUCTIONS
+Explore ${branches} distinct reasoning paths (branches) to solve this problem independently. For each branch, take a genuinely different approach or assumption — don't just rephrase the same idea.
+
+${branchBlock.trim()}
+
+### EVALUATION
+Compare all branches above. Identify flaws or weak assumptions in each. Then select — or synthesize from — the strongest branch(es) to produce one final, well-justified answer.
+
+Final Answer:`;
+    return { prompt: finalize(body), note: "Tree-of-Thought trades tokens for robustness — it's best reserved for genuinely hard problems (planning, puzzles, ambiguous design decisions) where a single reasoning path is prone to tunnel vision. Increase branches for higher-stakes or more ambiguous problems." };
+  },
+
+  'react': (task)=>{
+    const tools = val('reactTools') || '[tool_1, tool_2, ...]';
+    const body =
+`### TASK
+${task}
+
+### AVAILABLE TOOLS
+${tools}
+
+### INSTRUCTIONS
+Solve this using interleaved Thought / Action / Observation steps. At each step:
+- Thought: reason about what you currently know and what you need next.
+- Action: call exactly one tool from the list above, with explicit inputs. Use the format: Action: tool_name[input]
+- Observation: (this will be filled in with the tool's result)
+
+Repeat the Thought → Action → Observation loop until you have enough information, then give a Final Answer.
+
+Thought 1:
+Action 1:
+Observation 1:
+
+Thought 2:
+Action 2:
+Observation 2:
+
+...
+
+Final Answer:`;
+    return { prompt: finalize(body), note: 'ReAct is designed for agentic / tool-using setups — it needs an execution harness that actually runs the Action steps and feeds back real Observations. Without a harness, the model will simulate tool calls, which is useful for design/testing but not real tool execution.' };
+  },
+
+  'self-consistency': (task)=>{
+    const body =
+`### TASK
+${task}
+
+### INSTRUCTIONS
+This task will be solved multiple times independently, each time reasoning step-by-step from scratch without referencing other attempts.
+
+Attempt:
+Reasoning:
+1.
+2.
+3.
+Answer:
+
+---
+(Repeat this attempt 3-5 times with fresh reasoning, varying your approach slightly each time. Then:)
+
+### AGGREGATION
+Compare all attempts' final answers. Report the most consistent / majority answer as the final result. If answers diverge significantly, explain why and use judgment to pick the most defensible one.
+
+Final Answer:`;
+    return { prompt: finalize(body), note: 'Self-Consistency is normally run by sampling the model N times at higher temperature (outside a single prompt) and voting on the results programmatically. This single-prompt version simulates that inside one response — for true self-consistency, run this prompt multiple times via API and aggregate the answers yourself.' };
+  },
+
+  'persona': (task)=>{
+    const persona = val('personaInput') || '[a relevant expert role — fill this in above]';
+    const body =
+`You are ${persona}.
+
+Bring the specific expertise, standards, and judgment of that role to everything below — including the vocabulary you use, the risks you flag, and the level of rigor you apply.
+
+### TASK
+${task}
+
+### INSTRUCTIONS
+Respond as this expert would: thorough where it matters, terse where it doesn't, and willing to flag concerns a non-expert might miss.`;
+    return { prompt: body.trim(), note: 'Persona prompting shapes *judgment*, not just tone — a strong persona will change what the model considers important, not just how it phrases things. Be specific ("a skeptical senior security auditor" beats "a security expert").' };
+  },
+
+  'least-to-most': (task)=>{
+    const body =
+`### TASK
+${task}
+
+### INSTRUCTIONS
+Solve this using least-to-most decomposition:
+
+Step 1 — Decompose: Break this task into an ordered list of simpler sub-problems, from most foundational to most dependent. List them.
+
+Step 2 — Solve sequentially: Solve sub-problem 1 first, using only what's given. Then solve sub-problem 2, explicitly using the result of sub-problem 1. Continue through all sub-problems in order, each building on the previous results.
+
+Step 3 — Compose: Combine the sub-problem solutions into the final answer to the original task.
+
+Sub-problems:
+1.
+2.
+3.
+
+Sequential solutions:
+(solve each in order, referencing prior results)
+
+Final Answer:`;
+    return { prompt: finalize(body), note: "Least-to-Most shines when a task has natural prerequisite structure (you must understand X before Y makes sense) — it's gentler and more reliable than Tree-of-Thought for tasks that are sequential rather than exploratory." };
+  },
+
+  'generated-knowledge': (task)=>{
+    const body =
+`### STAGE 1 — GENERATE KNOWLEDGE
+Before answering, list the key facts, principles, constraints, or domain knowledge that are directly relevant to the task below. Be specific and only include things you're confident are true.
+
+Task (for context): ${task}
+
+Relevant knowledge:
+-
+-
+-
+
+### STAGE 2 — ANSWER USING THAT KNOWLEDGE
+Now, using only the knowledge generated above (plus sound reasoning), complete the task:
+
+${task}
+
+Final Answer:`;
+    return { prompt: finalize(body), note: 'Generated Knowledge reduces hallucination risk by forcing an explicit, checkable "what do I actually know" step before the model commits to an answer. Especially useful for factual or domain-specific tasks — you can review Stage 1 for errors before trusting Stage 2.' };
+  },
+
+  'meta-prompt': (task)=>{
+    const body =
+`### STAGE 1 — DESIGN THE STRATEGY
+Before solving the task below, first design the ideal approach for tackling it. Consider: What prompting technique fits best (step-by-step reasoning, examples, decomposition, role expertise)? What pitfalls are likely? What would a great answer need to include?
+
+Task: ${task}
+
+Strategy:
+-
+-
+-
+
+### STAGE 2 — EXECUTE THE STRATEGY
+Now follow your own strategy above to actually complete the task. Show your reasoning where it matters, then give the final answer.
+
+Final Answer:`;
+    return { prompt: finalize(body), note: "Meta-prompting asks the model to be its own prompt engineer first. It tends to help most on ambiguous or unfamiliar task types, where the \"right way to approach this\" isn't obvious — letting the model plan its method before committing reduces wasted first attempts." };
+  },
+
+  'plan-solve': (task)=>{
+    const body =
+`### TASK
+${task}
+
+### PHASE 1 — PLAN
+Devise a clear, ordered plan for solving this task. Do not solve anything yet — only outline the steps you will take and what each step is meant to accomplish.
+
+Plan:
+1.
+2.
+3.
+
+### PHASE 2 — SOLVE
+Now execute the plan above, one step at a time, in order. Show your work for each step. Make sure each step's output correctly feeds into the next.
+
+Execution:
+
+Final Answer:`;
+    return { prompt: finalize(body), note: 'Plan-and-Solve cleanly separates "what should I do" from "doing it" — this separation alone reduces errors versus letting the model plan and execute in a single tangled pass, especially on multi-step tasks like coding or analysis.' };
+  },
+};
+
+// ---- Generate button ----
+document.getElementById('generateBtn').addEventListener('click', ()=>{
+  const task = val('userIntent');
+  if(!task){
+    document.getElementById('userIntent').style.borderColor = 'var(--rust-bright)';
+    document.getElementById('userIntent').focus();
+    return;
+  }
+  if(!activeId){
+    document.querySelectorAll('.tech-card').forEach(c=>{
+      c.style.transition='none';
+      c.style.borderColor='var(--rust-bright)';
+      requestAnimationFrame(()=>{ c.style.transition='border-color .5s ease'; });
+    });
+    setTimeout(()=>{
+      document.querySelectorAll('.tech-card').forEach(c=> c.style.borderColor = '');
+    }, 900);
+    return;
+  }
+
+  const gen = GENERATORS[activeId];
+  const { prompt, note } = gen(task);
+
+  document.getElementById('output').textContent = prompt;
+  const techName = TECHNIQUES.find(t=>t.id===activeId).name;
+  document.getElementById('outputLabel').textContent = `III. The Forged Prompt — ${techName}`;
+  document.getElementById('outputFootnote').innerHTML = `<b>WHEN TO USE THIS RITE —</b> ${note}`;
+  document.getElementById('outputWrap').classList.add('show');
+  document.getElementById('outputWrap').scrollIntoView({ behavior:'smooth', block:'start' });
+});
+
+document.getElementById('userIntent').addEventListener('input', ()=>{
+  document.getElementById('userIntent').style.borderColor = '';
+});
+
+// ---- Copy / download ----
+document.getElementById('copyBtn').addEventListener('click', async ()=>{
+  const text = document.getElementById('output').textContent;
+  try{
+    await navigator.clipboard.writeText(text);
+    const btn = document.getElementById('copyBtn');
+    btn.textContent = '✓ Copied';
+    btn.classList.add('copied');
+    setTimeout(()=>{ btn.textContent='Copy'; btn.classList.remove('copied'); }, 1600);
+  }catch(e){
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+  }
+});
+
+document.getElementById('downloadBtn').addEventListener('click', ()=>{
+  const text = document.getElementById('output').textContent;
+  const techName = TECHNIQUES.find(t=>t.id===activeId)?.name.toLowerCase().replace(/\s+/g,'-') || 'prompt';
+  const blob = new Blob([text], { type:'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `prompter-${techName}.txt`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+});
+</script>
+</body>
+</html>
