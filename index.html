@@ -3,548 +3,827 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Prompter — The Codex of Prompting Techniques</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700;9..144,900&family=IBM+Plex+Mono:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&display=swap" rel="stylesheet">
+<title>PROMPTER — The Codex of Prompting Techniques</title>
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,900;1,400&family=Lora:ital,wght@0,400;0,600;1,400&display=block');
+
 :root{
-  --ink:#0c0b09;
-  --ink-2:#15130f;
-  --parchment:#ece4d3;
-  --parchment-dim:#bdb29c;
-  --gold:#c9a356;
-  --gold-bright:#e8c878;
-  --rust:#a8492e;
-  --rust-bright:#d35b3c;
-  --line:#3a3528;
-  --line-soft:#262217;
-  --green-ok:#7a9b6e;
-  --serif-display:'Fraunces', serif;
-  --serif-body:'Source Serif 4', serif;
-  --mono:'IBM Plex Mono', monospace;
+  --bg:#F9F9F7;
+  --ink:#111111;
+  --muted:#E5E5E0;
+  --accent:#CC0000;
+  --border:#111111;
+
+  --n-100:#F5F5F5;
+  --n-200:#E5E5E5;
+  --n-400:#A3A3A3;
+  --n-500:#737373;
+  --n-600:#525252;
+  --n-700:#404040;
+
+  --serif-display:'Playfair Display', 'Times New Roman', serif;
+  --serif-body:'Lora', Georgia, serif;
+  --sans:'Inter', 'Helvetica Neue', sans-serif;
+  --mono:'JetBrains Mono', 'Courier New', monospace;
 }
 
-*{box-sizing:border-box;}
+*{box-sizing:border-box; border-radius:0 !important;}
 html,body{margin:0;padding:0;}
 
 body{
-  background:
-    radial-gradient(ellipse 1200px 800px at 50% -10%, #1d1a13 0%, var(--ink) 55%),
-    var(--ink);
-  color:var(--parchment);
+  background-color:var(--bg);
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4' viewBox='0 0 4 4'%3E%3Cpath fill='%23111111' fill-opacity='0.04' d='M1 3h1v1H1V3zm2-2h1v1H3V1z'%3E%3C/path%3E%3C/svg%3E");
+  color:var(--ink);
   font-family:var(--serif-body);
   min-height:100vh;
-  position:relative;
-  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
 }
 
-/* grain overlay */
-body::before{
-  content:"";
-  position:fixed;
+.sharp-corners{ border-radius:0 !important; }
+
+.newsprint-texture{ position:relative; }
+.newsprint-texture::before{
+  content:'';
+  position:absolute;
   inset:0;
+  background-image:
+    linear-gradient(0deg, transparent 98%, rgba(0,0,0,0.025) 100%),
+    linear-gradient(90deg, transparent 98%, rgba(0,0,0,0.025) 100%);
+  background-size:3px 3px;
   pointer-events:none;
-  z-index:999;
-  opacity:0.05;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  mix-blend-mode:overlay;
+  opacity:0.5;
 }
 
+.hard-shadow-hover{ transition: box-shadow 200ms ease-out, transform 200ms ease-out; }
+.hard-shadow-hover:hover{
+  box-shadow:4px 4px 0px 0px var(--ink);
+  transform:translate(-2px,-2px);
+}
+
+a{ color:var(--ink); }
+:focus-visible{
+  outline:2px solid var(--ink);
+  outline-offset:2px;
+}
+
+/* ===== CONTAINER ===== */
 .frame{
-  max-width:1180px;
+  max-width:1280px;
   margin:0 auto;
-  padding:0 28px 100px;
-  position:relative;
+  padding:0 16px;
 }
+@media(min-width:768px){ .frame{ padding:0 24px; } }
 
-/* ===== HEADER ===== */
-header{
-  padding:56px 0 40px;
-  text-align:center;
-  position:relative;
-  border-bottom:1px solid var(--line);
-  margin-bottom:48px;
-}
-
-.sigil{
-  width:54px;height:54px;
-  margin:0 auto 22px;
-  position:relative;
-}
-.sigil svg{width:100%;height:100%;}
-
-.eyebrow{
+/* ===== TOP UTILITY BAR ===== */
+.utility-bar{
+  background:var(--ink);
+  color:var(--bg);
   font-family:var(--mono);
   font-size:11px;
-  letter-spacing:0.32em;
+  letter-spacing:0.12em;
   text-transform:uppercase;
-  color:var(--gold);
-  margin-bottom:18px;
 }
-.eyebrow::before, .eyebrow::after{ content:"✦"; margin:0 12px; color:var(--rust-bright); font-size:9px; vertical-align:middle;}
-
-h1.title{
-  font-family:var(--serif-display);
-  font-optical-sizing:auto;
-  font-weight:900;
-  font-size:clamp(48px, 8vw, 92px);
-  line-height:0.95;
-  margin:0 0 14px;
-  letter-spacing:-0.01em;
-  background:linear-gradient(180deg, var(--gold-bright) 0%, var(--gold) 45%, #8a6a30 100%);
-  -webkit-background-clip:text;
-  background-clip:text;
-  color:transparent;
-  text-shadow:0 1px 0 rgba(0,0,0,0.3);
+.utility-bar .frame{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding-top:8px;
+  padding-bottom:8px;
+  flex-wrap:wrap;
+  gap:6px;
 }
+.utility-bar .accent{ color:#ff5c4d; }
 
-.subtitle{
-  font-family:var(--serif-body);
-  font-style:italic;
-  font-size:18px;
-  color:var(--parchment-dim);
-  max-width:560px;
-  margin:0 auto;
-  line-height:1.5;
+/* ===== MASTHEAD ===== */
+.masthead{
+  border-bottom:4px solid var(--border);
+  padding:28px 0 0;
 }
-
-.subtitle b{ color:var(--parchment); font-weight:600; font-style:normal; }
-
-/* ===== LAYOUT ===== */
-.altar{
-  display:grid;
-  grid-template-columns:1fr;
-  gap:36px;
-}
-
-.panel{
-  background:linear-gradient(160deg, var(--ink-2) 0%, #110f0b 100%);
-  border:1px solid var(--line);
-  border-radius:4px;
-  position:relative;
-}
-.panel::before{
-  content:"";
-  position:absolute; inset:0;
-  border-radius:4px;
-  box-shadow: inset 0 1px 0 rgba(232,200,120,0.06), inset 0 0 60px rgba(168,73,46,0.04);
-  pointer-events:none;
-}
-
-.panel-head{
+.masthead-top{
   display:flex;
   align-items:baseline;
   justify-content:space-between;
-  padding:22px 28px 0;
-}
-
-.panel-num{
   font-family:var(--mono);
   font-size:11px;
-  color:var(--rust-bright);
+  letter-spacing:0.14em;
+  text-transform:uppercase;
+  color:var(--n-600);
+  border-bottom:1px solid var(--border);
+  padding-bottom:14px;
+  margin-bottom:18px;
+  flex-wrap:wrap;
+  gap:8px;
+}
+.masthead-top b{ color:var(--ink); }
+
+.masthead-main{
+  text-align:center;
+  padding-bottom:22px;
+}
+
+.masthead-title{
+  font-family:var(--serif-display);
+  font-weight:900;
+  font-size:clamp(64px, 13vw, 168px);
+  line-height:0.85;
+  letter-spacing:-0.02em;
+  margin:0;
+  color:var(--ink);
+}
+
+.masthead-tagline{
+  font-family:var(--serif-body);
+  font-style:italic;
+  font-size:15px;
+  color:var(--n-600);
+  margin:10px 0 0;
+  letter-spacing:0.01em;
+}
+
+.masthead-rule{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  border-top:1px solid var(--border);
+  border-bottom:1px solid var(--border);
+  padding:9px 0;
+  font-family:var(--mono);
+  font-size:10.5px;
+  letter-spacing:0.18em;
+  text-transform:uppercase;
+  color:var(--n-700);
+}
+.masthead-rule .badge-red{
+  background:var(--accent);
+  color:#fff;
+  padding:2px 8px;
+  font-weight:600;
   letter-spacing:0.1em;
 }
+.masthead-rule .sep{ color:var(--n-400); }
+.masthead-rule span.fill{ flex:1; text-align:right; }
 
-.panel-title{
-  font-family:var(--serif-display);
-  font-weight:700;
-  font-size:22px;
-  color:var(--parchment);
-  margin:4px 0 0;
-}
-
-.panel-body{ padding:20px 28px 28px; }
-
-/* ===== STEP 1: INPUT ===== */
-textarea#userIntent{
-  width:100%;
-  min-height:120px;
+/* ===== MARQUEE TICKER ===== */
+.ticker-wrap{
   background:var(--ink);
-  border:1px solid var(--line);
-  border-radius:3px;
-  color:var(--parchment);
-  font-family:var(--serif-body);
-  font-size:16px;
-  line-height:1.6;
-  padding:16px 18px;
-  resize:vertical;
-  transition:border-color .25s ease, box-shadow .25s ease;
+  color:var(--bg);
+  overflow:hidden;
+  white-space:nowrap;
+  border-bottom:1px solid var(--border);
+  position:relative;
 }
-textarea#userIntent::placeholder{ color:#5e5848; font-style:italic; }
-textarea#userIntent:focus{
-  outline:none;
-  border-color:var(--gold);
-  box-shadow:0 0 0 3px rgba(201,163,86,0.12);
+.ticker-track{
+  display:inline-flex;
+  animation:ticker 38s linear infinite;
+  padding:10px 0;
+}
+.ticker-track span{
+  font-family:var(--mono);
+  font-size:11.5px;
+  letter-spacing:0.06em;
+  text-transform:uppercase;
+  padding:0 22px;
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+}
+.ticker-track .dot{ color:var(--accent); font-size:14px; }
+@keyframes ticker{
+  from{ transform:translateX(0); }
+  to{ transform:translateX(-50%); }
+}
+@media (prefers-reduced-motion: reduce){
+  .ticker-track{ animation:none; }
 }
 
-.field-row{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:16px;
-  margin-top:16px;
+/* ===== SECTION SCAFFOLD ===== */
+.section{
+  border-bottom:1px solid var(--border);
+  padding:48px 0;
 }
-@media (max-width:640px){ .field-row{ grid-template-columns:1fr; } }
+@media(max-width:767px){ .section{ padding:32px 0; } }
+
+.section-label{
+  font-family:var(--mono);
+  font-size:11px;
+  letter-spacing:0.2em;
+  text-transform:uppercase;
+  color:var(--n-500);
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:10px;
+}
+.section-label .num{
+  border:1px solid var(--border);
+  width:24px; height:24px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  font-size:11px;
+  color:var(--ink);
+}
+
+.section-heading{
+  font-family:var(--serif-display);
+  font-weight:900;
+  font-size:clamp(34px, 5vw, 56px);
+  line-height:0.95;
+  letter-spacing:-0.01em;
+  margin:0 0 8px;
+}
+
+.section-sub{
+  font-family:var(--serif-body);
+  font-size:15.5px;
+  color:var(--n-600);
+  max-width:640px;
+  line-height:1.6;
+  margin:0;
+}
+
+/* drop cap */
+.drop-cap::first-letter{
+  font-family:var(--serif-display);
+  font-weight:900;
+  font-size:4.4em;
+  float:left;
+  line-height:0.78;
+  padding:0.04em 0.08em 0 0;
+  color:var(--ink);
+}
+
+/* ===== GRID DISPATCH (Step I) ===== */
+.dispatch-grid{
+  display:grid;
+  grid-template-columns:7fr 5fr;
+  border-top:1px solid var(--border);
+  border-left:1px solid var(--border);
+  margin-top:24px;
+}
+@media(max-width:900px){ .dispatch-grid{ grid-template-columns:1fr; } }
+
+.dispatch-cell{
+  border-right:1px solid var(--border);
+  border-bottom:1px solid var(--border);
+  padding:24px;
+}
+@media(max-width:900px){ .dispatch-cell{ border-right:1px solid var(--border); } }
 
 .field-label{
   display:block;
   font-family:var(--mono);
   font-size:10.5px;
-  letter-spacing:0.14em;
+  letter-spacing:0.16em;
   text-transform:uppercase;
-  color:var(--parchment-dim);
-  margin-bottom:7px;
+  color:var(--n-600);
+  margin-bottom:8px;
 }
+.field-label .req{ color:var(--accent); }
+
+textarea#userIntent{
+  width:100%;
+  min-height:140px;
+  background:transparent;
+  border:none;
+  border-bottom:2px solid var(--ink);
+  color:var(--ink);
+  font-family:var(--serif-body);
+  font-size:16px;
+  line-height:1.6;
+  padding:8px 2px 14px;
+  resize:vertical;
+}
+textarea#userIntent::placeholder{ color:var(--n-500); font-style:italic; }
+textarea#userIntent:focus{
+  outline:none;
+  background:#F0F0F0;
+}
+
+.sub-field + .sub-field{ margin-top:18px; }
 
 input[type=text], input[type=number]{
   width:100%;
-  background:var(--ink);
-  border:1px solid var(--line);
-  border-radius:3px;
-  color:var(--parchment);
-  font-family:var(--serif-body);
-  font-size:14.5px;
-  padding:11px 14px;
-  transition:border-color .25s ease;
+  background:transparent;
+  border:none;
+  border-bottom:2px solid var(--ink);
+  color:var(--ink);
+  font-family:var(--mono);
+  font-size:13.5px;
+  padding:9px 8px;
 }
-input[type=text]::placeholder{ color:#5e5848; font-style:italic; }
+input[type=text]::placeholder{ color:var(--n-500); font-style:normal; }
 input[type=text]:focus, input[type=number]:focus{
   outline:none;
-  border-color:var(--gold);
+  background:#F0F0F0;
 }
 
-/* ===== STEP 2: TECHNIQUE GRID ===== */
+.aside-note{
+  font-family:var(--serif-body);
+  font-style:italic;
+  font-size:13.5px;
+  color:var(--n-600);
+  line-height:1.65;
+  border-left:3px solid var(--accent);
+  padding-left:14px;
+  margin-top:20px;
+}
+.aside-note b{ font-style:normal; font-family:var(--mono); font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:var(--ink); display:block; margin-bottom:6px; }
+
+/* ===== TECHNIQUE GRID (Step II) ===== */
 .tech-grid{
   display:grid;
   grid-template-columns:repeat(3, 1fr);
-  gap:12px;
+  border-top:1px solid var(--border);
+  border-left:1px solid var(--border);
+  margin-top:24px;
 }
 @media (max-width:900px){ .tech-grid{ grid-template-columns:repeat(2, 1fr); } }
 @media (max-width:560px){ .tech-grid{ grid-template-columns:1fr; } }
 
 .tech-card{
-  background:var(--ink);
-  border:1px solid var(--line);
-  border-radius:3px;
-  padding:16px 16px 14px;
+  background:var(--bg);
+  border-right:1px solid var(--border);
+  border-bottom:1px solid var(--border);
+  border-radius:0;
+  padding:20px 18px;
   cursor:pointer;
   position:relative;
-  transition:transform .18s ease, border-color .18s ease, background .18s ease;
   text-align:left;
+  font-family:inherit;
+  transition:background-color 150ms ease-out, box-shadow 150ms ease-out, transform 150ms ease-out;
 }
 .tech-card:hover{
-  border-color:var(--gold);
-  transform:translateY(-2px);
+  background:var(--n-100);
 }
 .tech-card.active{
-  border-color:var(--rust-bright);
-  background:linear-gradient(160deg, #1d140d 0%, var(--ink) 100%);
-  box-shadow:0 0 0 1px var(--rust-bright), 0 8px 24px -8px rgba(168,73,46,0.5);
+  background:var(--ink);
+  box-shadow:4px 4px 0px 0px var(--accent);
+  transform:translate(-2px,-2px);
 }
 .tech-card.active::after{
-  content:"✓ INVOKED";
+  content:"\2605 SELECTED";
   position:absolute;
   top:10px; right:10px;
   font-family:var(--mono);
-  font-size:9px;
-  letter-spacing:0.08em;
-  color:var(--rust-bright);
+  font-size:8.5px;
+  letter-spacing:0.1em;
+  color:var(--accent);
 }
 
 .tech-numeral{
   font-family:var(--mono);
   font-size:10px;
-  color:var(--parchment-dim);
-  letter-spacing:0.1em;
-  margin-bottom:8px;
+  letter-spacing:0.12em;
+  color:var(--n-500);
+  margin-bottom:10px;
   display:block;
 }
+.tech-card.active .tech-numeral{ color:var(--n-400); }
 
 .tech-name{
   font-family:var(--serif-display);
   font-weight:700;
-  font-size:17px;
-  color:var(--parchment);
-  margin:0 0 6px;
+  font-size:19px;
+  color:var(--ink);
+  margin:0 0 8px;
+  line-height:1.15;
 }
-.tech-card.active .tech-name{ color:var(--gold-bright); }
+.tech-card.active .tech-name{ color:var(--bg); }
 
 .tech-desc{
   font-size:13px;
-  color:var(--parchment-dim);
-  line-height:1.45;
+  font-family:var(--serif-body);
+  color:var(--n-600);
+  line-height:1.5;
   margin:0;
 }
+.tech-card.active .tech-desc{ color:var(--n-400); }
 
-/* difficulty / use marks */
 .tech-meta{
-  margin-top:10px;
+  margin-top:14px;
   display:flex;
   gap:6px;
   flex-wrap:wrap;
 }
 .tag{
   font-family:var(--mono);
-  font-size:9.5px;
-  letter-spacing:0.04em;
+  font-size:9px;
+  letter-spacing:0.05em;
+  text-transform:uppercase;
   padding:3px 7px;
-  border-radius:2px;
-  background:var(--line-soft);
-  color:var(--parchment-dim);
-  border:1px solid var(--line);
-}
-
-/* ===== STEP 3: GENERATE / OUTPUT ===== */
-.generate-bar{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  margin:40px 0;
-  position:relative;
-}
-.generate-bar::before, .generate-bar::after{
-  content:"";
-  flex:1;
-  height:1px;
-  background:linear-gradient(90deg, transparent, var(--line));
-}
-.generate-bar::after{ background:linear-gradient(90deg, var(--line), transparent); }
-
-.btn-generate{
-  font-family:var(--mono);
-  font-size:13px;
-  letter-spacing:0.18em;
-  text-transform:uppercase;
-  background:linear-gradient(180deg, var(--rust-bright), var(--rust));
-  color:#fff3e8;
-  border:none;
-  border-radius:3px;
-  padding:16px 38px;
-  margin:0 24px;
-  cursor:pointer;
-  position:relative;
-  white-space:nowrap;
-  box-shadow:0 10px 30px -8px rgba(168,73,46,0.6), inset 0 1px 0 rgba(255,255,255,0.15);
-  transition:transform .15s ease, box-shadow .15s ease;
-}
-.btn-generate:hover{ transform:translateY(-1px); box-shadow:0 14px 34px -8px rgba(168,73,46,0.75), inset 0 1px 0 rgba(255,255,255,0.2); }
-.btn-generate:active{ transform:translateY(1px); }
-.btn-generate:disabled{ opacity:0.4; cursor:not-allowed; transform:none; }
-
-.output-wrap{ display:none; }
-.output-wrap.show{ display:block; animation:reveal .5s ease; }
-@keyframes reveal{ from{ opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
-
-.output-head{
-  display:flex;
-  justify-content:space-between;
-  align-items:baseline;
-  flex-wrap:wrap;
-  gap:10px;
-  margin-bottom:14px;
-}
-
-.output-label{
-  font-family:var(--mono);
-  font-size:11px;
-  letter-spacing:0.14em;
-  text-transform:uppercase;
-  color:var(--gold);
-}
-
-.output-actions{ display:flex; gap:10px; }
-.btn-mini{
-  font-family:var(--mono);
-  font-size:11px;
-  letter-spacing:0.06em;
+  border:1px solid var(--border);
+  color:var(--ink);
   background:transparent;
-  border:1px solid var(--line);
-  color:var(--parchment-dim);
-  padding:8px 14px;
-  border-radius:3px;
-  cursor:pointer;
-  transition:all .2s ease;
 }
-.btn-mini:hover{ border-color:var(--gold); color:var(--gold-bright); }
-.btn-mini.copied{ border-color:var(--green-ok); color:var(--green-ok); }
+.tech-card.active .tag{ border-color:var(--n-600); color:var(--n-400); }
 
-pre#output{
-  background:var(--ink);
-  border:1px solid var(--line);
-  border-left:3px solid var(--rust-bright);
-  border-radius:3px;
-  padding:24px 26px;
-  font-family:var(--mono);
-  font-size:13.5px;
-  line-height:1.7;
-  color:var(--parchment);
-  white-space:pre-wrap;
-  word-wrap:break-word;
-  max-height:560px;
-  overflow-y:auto;
-}
-pre#output::-webkit-scrollbar{ width:8px; }
-pre#output::-webkit-scrollbar-track{ background:var(--ink); }
-pre#output::-webkit-scrollbar-thumb{ background:var(--line); border-radius:4px; }
-
-.output-footnote{
-  margin-top:14px;
-  font-size:13px;
-  font-style:italic;
-  color:var(--parchment-dim);
-  line-height:1.6;
-  border-top:1px dashed var(--line);
-  padding-top:14px;
-}
-.output-footnote b{ font-style:normal; color:var(--gold); font-family:var(--mono); font-size:11px; letter-spacing:0.05em;}
-
-/* dynamic extra inputs (few-shot examples, ToT branches) */
+/* dynamic blocks */
 .dynamic-block{
-  margin-top:16px;
-  padding-top:16px;
-  border-top:1px dashed var(--line);
+  margin-top:24px;
+  padding-top:20px;
+  border-top:1px dashed var(--n-400);
   display:none;
 }
-.dynamic-block.show{ display:block; animation:reveal .4s ease; }
+.dynamic-block.show{ display:block; }
 
 .example-row{
   display:grid;
   grid-template-columns:1fr 1fr auto;
   gap:10px;
   margin-bottom:10px;
+  align-items:center;
 }
 @media (max-width:700px){ .example-row{ grid-template-columns:1fr; } }
-.example-row input{ font-size:13.5px; }
+.example-row input{ font-size:13px; }
 .btn-remove{
   background:transparent;
-  border:1px solid var(--line);
-  color:var(--rust-bright);
-  border-radius:3px;
+  border:1px solid var(--border);
+  color:var(--accent);
   cursor:pointer;
   font-family:var(--mono);
   font-size:12px;
-  padding:0 12px;
+  padding:8px 12px;
+  min-height:38px;
 }
-.btn-remove:hover{ border-color:var(--rust-bright); background:rgba(168,73,46,0.1); }
+.btn-remove:hover{ background:var(--accent); color:#fff; border-color:var(--accent); }
 
 .btn-add{
   background:transparent;
-  border:1px dashed var(--line);
-  color:var(--parchment-dim);
-  border-radius:3px;
+  border:1px dashed var(--border);
+  color:var(--n-600);
   cursor:pointer;
   font-family:var(--mono);
-  font-size:12px;
-  letter-spacing:0.05em;
-  padding:9px 16px;
-  margin-top:4px;
-  transition:all .2s ease;
+  font-size:11.5px;
+  letter-spacing:0.08em;
+  text-transform:uppercase;
+  padding:10px 18px;
+  margin-top:6px;
+  min-height:44px;
+  transition:all 150ms ease-out;
 }
-.btn-add:hover{ border-color:var(--gold); color:var(--gold-bright); }
+.btn-add:hover{ border-style:solid; background:var(--ink); color:var(--bg); }
 
-footer{
-  text-align:center;
-  margin-top:60px;
+/* ===== GENERATE CTA ===== */
+.generate-bar{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:40px 0;
+  border-bottom:1px solid var(--border);
+  gap:20px;
+}
+.generate-bar .rule{
+  flex:1;
+  height:1px;
+  background:var(--border);
+  max-width:160px;
+}
+@media(max-width:600px){ .generate-bar .rule{ display:none; } }
+
+.btn-generate{
+  font-family:var(--sans);
+  font-size:13px;
+  font-weight:700;
+  letter-spacing:0.14em;
+  text-transform:uppercase;
+  background:var(--ink);
+  color:var(--bg);
+  border:1px solid var(--ink);
+  border-radius:0;
+  padding:18px 44px;
+  cursor:pointer;
+  white-space:nowrap;
+  min-height:44px;
+  transition:background-color 200ms ease-out, color 200ms ease-out, box-shadow 200ms ease-out, transform 200ms ease-out;
+}
+.btn-generate:hover{
+  background:var(--bg);
+  color:var(--ink);
+  box-shadow:4px 4px 0px 0px var(--accent);
+  transform:translate(-2px,-2px);
+}
+.btn-generate:active{ transform:translate(0,0); box-shadow:none; }
+.btn-generate:disabled{ opacity:0.4; cursor:not-allowed; }
+
+/* ===== OUTPUT (Special Edition) ===== */
+.output-wrap{ display:none; }
+.output-wrap.show{ display:block; }
+
+.output-section{ border-bottom:none; }
+
+.output-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-end;
+  flex-wrap:wrap;
+  gap:14px;
+  border-bottom:4px solid var(--border);
+  padding-bottom:14px;
+  margin-bottom:24px;
+}
+
+.output-label{
   font-family:var(--mono);
   font-size:11px;
   letter-spacing:0.1em;
-  color:#544f3e;
+  text-transform:uppercase;
+  color:var(--n-600);
+  font-weight:600;
+}
+
+.output-actions{ display:flex; gap:10px; }
+.btn-mini{
+  font-family:var(--sans);
+  font-size:11px;
+  font-weight:600;
+  letter-spacing:0.08em;
+  text-transform:uppercase;
+  background:transparent;
+  border:1px solid var(--border);
+  color:var(--ink);
+  padding:9px 16px;
+  border-radius:0;
+  cursor:pointer;
+  min-height:38px;
+  transition:background-color 150ms ease-out, color 150ms ease-out;
+}
+.btn-mini:hover{ background:var(--ink); color:var(--bg); }
+.btn-mini.copied{ background:var(--accent); color:#fff; border-color:var(--accent); }
+
+pre#output{
+  background:var(--bg);
+  border:1px solid var(--border);
+  border-left:4px solid var(--accent);
+  border-radius:0;
+  padding:26px 28px;
+  font-family:var(--mono);
+  font-size:13px;
+  line-height:1.75;
+  color:var(--ink);
+  white-space:pre-wrap;
+  word-wrap:break-word;
+  max-height:560px;
+  overflow-y:auto;
+}
+pre#output::-webkit-scrollbar{ width:8px; }
+pre#output::-webkit-scrollbar-track{ background:var(--n-100); }
+pre#output::-webkit-scrollbar-thumb{ background:var(--ink); }
+
+.output-footnote{
+  margin-top:18px;
+  font-family:var(--serif-body);
+  font-size:13.5px;
+  font-style:italic;
+  color:var(--n-600);
+  line-height:1.65;
+  border-top:1px solid var(--border);
+  padding-top:16px;
+}
+.output-footnote b{ font-style:normal; color:var(--ink); font-family:var(--mono); font-size:10.5px; letter-spacing:0.08em; text-transform:uppercase; }
+
+/* ===== HOW IT WORKS (inverted section) ===== */
+.inverted{
+  background:var(--ink);
+  color:var(--bg);
+}
+.inverted .section-label{ color:var(--n-400); }
+.inverted .section-label .num{ border-color:var(--n-500); color:var(--bg); }
+.inverted .section-heading{ color:var(--bg); }
+.inverted .section-sub{ color:var(--n-400); }
+
+.steps-grid{
+  display:grid;
+  grid-template-columns:repeat(4, 1fr);
+  border-top:1px solid var(--n-700);
+  border-left:1px solid var(--n-700);
+  margin-top:28px;
+}
+@media(max-width:900px){ .steps-grid{ grid-template-columns:repeat(2,1fr); } }
+@media(max-width:560px){ .steps-grid{ grid-template-columns:1fr; } }
+
+.step-cell{
+  border-right:1px solid var(--n-700);
+  border-bottom:1px solid var(--n-700);
+  padding:26px 22px;
+}
+.step-num{
+  font-family:var(--mono);
+  font-size:13px;
+  color:var(--accent);
+  border:1px solid var(--accent);
+  width:32px; height:32px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  margin-bottom:16px;
+}
+.step-title{
+  font-family:var(--serif-display);
+  font-weight:700;
+  font-size:18px;
+  color:var(--bg);
+  margin:0 0 8px;
+}
+.step-desc{
+  font-family:var(--serif-body);
+  font-size:13.5px;
+  color:var(--n-400);
+  line-height:1.55;
+  margin:0;
+}
+
+/* ===== ORNAMENTAL DIVIDER ===== */
+.ornament{
+  text-align:center;
+  font-family:var(--serif-display);
+  font-size:18px;
+  color:var(--accent);
+  letter-spacing:1em;
+  padding:22px 0;
+  border-bottom:1px solid var(--border);
+}
+
+/* ===== FOOTER / COLOPHON ===== */
+.colophon{ padding:0; border-bottom:none; }
+.colophon-grid{
+  display:grid;
+  grid-template-columns:2fr 1fr 1fr 1fr;
+  border-top:1px solid var(--border);
+}
+@media(max-width:768px){ .colophon-grid{ grid-template-columns:1fr 1fr; } }
+
+.colophon-cell{
+  border-right:1px solid var(--border);
+  padding:28px 22px;
+}
+.colophon-cell:last-child{ border-right:none; }
+@media(max-width:768px){ .colophon-cell:nth-child(2n){ border-right:none; } .colophon-cell{ border-bottom:1px solid var(--border); } }
+
+.colophon-mark{
+  font-family:var(--serif-display);
+  font-weight:900;
+  font-size:26px;
+  margin:0 0 6px;
+}
+.colophon-mark sup{ font-family:var(--mono); font-size:11px; font-weight:400; }
+
+.colophon-desc{
+  font-family:var(--serif-body);
+  font-size:13px;
+  color:var(--n-600);
+  line-height:1.6;
+  margin:0;
+}
+
+.colophon-label{
+  font-family:var(--mono);
+  font-size:10px;
+  letter-spacing:0.14em;
+  text-transform:uppercase;
+  color:var(--n-500);
+  margin:0 0 12px;
+}
+
+.colophon-links{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:9px; }
+.colophon-links a{
+  font-family:var(--sans);
+  font-size:13px;
+  text-decoration:none;
+  color:var(--ink);
+  text-underline-offset:4px;
+}
+.colophon-links a:hover{ text-decoration:underline; text-decoration-color:var(--accent); text-decoration-thickness:2px; }
+
+.legal-bar{
+  border-top:1px solid var(--border);
+  padding:16px 0;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:8px;
+  font-family:var(--mono);
+  font-size:10px;
+  letter-spacing:0.06em;
+  color:var(--n-500);
   text-transform:uppercase;
 }
-footer span{ color:var(--rust-bright); }
+.legal-bar b{ color:var(--ink); }
 </style>
 </head>
 <body>
 
-<div class="frame">
+<div class="utility-bar">
+  <div class="frame">
+    <span>Est. MMXXIV <span class="accent">&middot;</span> Arcanum Labs</span>
+    <span>No data leaves your browser <span class="accent">&middot;</span> v3.0</span>
+  </div>
+</div>
 
-  <header>
-    <div class="sigil">
-      <svg viewBox="0 0 54 54" fill="none">
-        <circle cx="27" cy="27" r="25" stroke="#c9a356" stroke-width="1.2" opacity="0.6"/>
-        <path d="M27 6 L41 27 L27 48 L13 27 Z" stroke="#d35b3c" stroke-width="1.4" fill="none"/>
-        <circle cx="27" cy="27" r="5.5" fill="#c9a356" opacity="0.85"/>
-        <path d="M27 12 V42 M12 27 H42" stroke="#c9a356" stroke-width="0.6" opacity="0.4"/>
-      </svg>
+<header class="masthead">
+  <div class="frame">
+    <div class="masthead-top">
+      <span><b>Vol. III</b> &middot; No. 12</span>
+      <span>New York Edition</span>
+      <span><b id="todayDate">—</b></span>
     </div>
-    <div class="eyebrow">A Codex of Reasoning Rites</div>
-    <h1 class="title">PROMPTER</h1>
-    <p class="subtitle">The godfather of every prompt that ever worked. State your intent below, choose a <b>technique</b> from the old texts, and the Codex shall forge your template.</p>
-  </header>
+    <div class="masthead-main">
+      <h1 class="masthead-title">PROMPTER</h1>
+      <p class="masthead-tagline">&ldquo;All the Prompts That Are Fit to Forge.&rdquo;</p>
+    </div>
+    <div class="masthead-rule">
+      <span class="badge-red">Premium Edition</span>
+      <span class="sep">&bull;</span>
+      <span>A Codex of Twelve Reasoning Techniques</span>
+      <span class="fill">PROMPTER&trade;</span>
+    </div>
+  </div>
+</header>
 
-  <div class="altar">
+<div class="ticker-wrap" aria-hidden="true">
+  <div class="ticker-track" id="tickerTrack"></div>
+</div>
 
-    <!-- STEP 1 -->
-    <div class="panel">
-      <div class="panel-head">
-        <span class="panel-num">I.</span>
-      </div>
-      <div class="panel-body">
-        <h2 class="panel-title">Declare Your Intent</h2>
-        <textarea id="userIntent" placeholder="e.g. Write a function that detects credit card fraud from transaction logs, or: Draft a cold outreach email for a B2B SaaS product..."></textarea>
+<main>
 
-        <div class="field-row">
-          <div>
-            <label class="field-label">Persona / Role (optional)</label>
+  <!-- STEP I — DISPATCH -->
+  <section class="section newsprint-texture">
+    <div class="frame">
+      <div class="section-label"><span class="num">I</span> Submit Your Dispatch</div>
+      <h2 class="section-heading">Declare Your Intent</h2>
+      <p class="section-sub drop-cap">Every great prompt begins as a plain statement of purpose. Write yours below — the Codex will dress it in whichever technique you select from the grid that follows.</p>
+
+      <div class="dispatch-grid">
+        <div class="dispatch-cell">
+          <label class="field-label" for="userIntent">The Task <span class="req">&mdash; required</span></label>
+          <textarea id="userIntent" placeholder="e.g. Write a function that detects credit card fraud from transaction logs, or: Draft a cold outreach email for a B2B SaaS product..."></textarea>
+        </div>
+        <div class="dispatch-cell">
+          <div class="sub-field">
+            <label class="field-label" for="personaInput">Persona / Role &mdash; optional</label>
             <input type="text" id="personaInput" placeholder="e.g. Senior backend engineer, veteran copywriter...">
           </div>
-          <div>
-            <label class="field-label">Output Format (optional)</label>
+          <div class="sub-field">
+            <label class="field-label" for="formatInput">Output Format &mdash; optional</label>
             <input type="text" id="formatInput" placeholder="e.g. JSON, bullet list, 3 paragraphs...">
           </div>
+          <p class="aside-note"><b>Editor's Note</b>Persona and format act as standing instructions — they're appended to whichever technique you forge below, so you only need to state them once.</p>
         </div>
       </div>
     </div>
+  </section>
 
-    <!-- STEP 2 -->
-    <div class="panel">
-      <div class="panel-head">
-        <span class="panel-num">II.</span>
+  <!-- STEP II — THE TWELVE RITES -->
+  <section class="section newsprint-texture">
+    <div class="frame">
+      <div class="section-label"><span class="num">II</span> The Reasoning Desk</div>
+      <h2 class="section-heading">Choose Your Rite</h2>
+      <p class="section-sub">Twelve dispatches from the prompting literature, condensed into ready-to-use templates. Select one to reveal its required fields.</p>
+
+      <div class="tech-grid" id="techGrid"></div>
+
+      <!-- Few-shot dynamic examples -->
+      <div class="dynamic-block" id="fewShotBlock">
+        <label class="field-label">Examples &mdash; input &rarr; output pairs</label>
+        <div id="exampleRows"></div>
+        <button class="btn-add" id="addExampleBtn" type="button">+ Add Example</button>
       </div>
-      <div class="panel-body">
-        <h2 class="panel-title">Choose Your Rite</h2>
-        <div class="tech-grid" id="techGrid"></div>
 
-        <!-- Few-shot dynamic examples -->
-        <div class="dynamic-block" id="fewShotBlock">
-          <label class="field-label">Examples (input → output pairs)</label>
-          <div id="exampleRows"></div>
-          <button class="btn-add" id="addExampleBtn" type="button">+ Add Example</button>
+      <!-- One-shot dynamic example -->
+      <div class="dynamic-block" id="oneShotBlock">
+        <label class="field-label">The One Example</label>
+        <div class="example-row" style="grid-template-columns:1fr 1fr;">
+          <input type="text" id="oneShotIn" placeholder="Example input">
+          <input type="text" id="oneShotOut" placeholder="Example output">
         </div>
+      </div>
 
-        <!-- One-shot dynamic example -->
-        <div class="dynamic-block" id="oneShotBlock">
-          <label class="field-label">The One Example</label>
-          <div class="example-row" style="grid-template-columns:1fr 1fr;">
-            <input type="text" id="oneShotIn" placeholder="Example input">
-            <input type="text" id="oneShotOut" placeholder="Example output">
-          </div>
-        </div>
+      <!-- ToT branches -->
+      <div class="dynamic-block" id="totBlock">
+        <label class="field-label">Number of Reasoning Branches</label>
+        <input type="number" id="totBranches" min="2" max="6" value="3" style="max-width:120px;">
+      </div>
 
-        <!-- ToT branches -->
-        <div class="dynamic-block" id="totBlock">
-          <label class="field-label">Number of Reasoning Branches</label>
-          <input type="number" id="totBranches" min="2" max="6" value="3" style="max-width:120px;">
-        </div>
-
-        <!-- ReAct tools -->
-        <div class="dynamic-block" id="reactBlock">
-          <label class="field-label">Available Tools (comma-separated)</label>
-          <input type="text" id="reactTools" placeholder="e.g. web_search, calculator, database_query">
-        </div>
+      <!-- ReAct tools -->
+      <div class="dynamic-block" id="reactBlock">
+        <label class="field-label">Available Tools &mdash; comma-separated</label>
+        <input type="text" id="reactTools" placeholder="e.g. web_search, calculator, database_query">
       </div>
     </div>
-
-  </div>
+  </section>
 
   <div class="generate-bar">
-    <button class="btn-generate" id="generateBtn">⚡ Forge the Prompt</button>
+    <span class="rule"></span>
+    <button class="btn-generate" id="generateBtn">Forge The Prompt &rarr;</button>
+    <span class="rule"></span>
   </div>
 
-  <div class="panel output-wrap" id="outputWrap">
-    <div class="panel-body">
+  <!-- OUTPUT — SPECIAL EDITION -->
+  <section class="section output-section newsprint-texture output-wrap" id="outputWrap">
+    <div class="frame">
       <div class="output-head">
-        <span class="output-label" id="outputLabel">III. The Forged Prompt</span>
+        <div class="output-label" id="outputLabel">III &middot; The Forged Prompt</div>
         <div class="output-actions">
           <button class="btn-mini" id="copyBtn">Copy</button>
           <button class="btn-mini" id="downloadBtn">Download .txt</button>
@@ -553,11 +832,103 @@ footer span{ color:var(--rust-bright); }
       <pre id="output"></pre>
       <div class="output-footnote" id="outputFootnote"></div>
     </div>
-  </div>
+  </section>
 
-  <footer>Prompter <span>·</span> Forged client-side <span>·</span> No data leaves your browser</footer>
+  <div class="ornament">&#10037; &#10037; &#10037;</div>
 
-</div>
+  <!-- HOW IT WORKS — INVERTED SECTION -->
+  <section class="section inverted">
+    <div class="frame">
+      <div class="section-label"><span class="num">IV</span> Method &amp; Process</div>
+      <h2 class="section-heading">How The Codex Works</h2>
+      <p class="section-sub">Four steps, no magic — every template is assembled from plain text rules, client-side, in your browser.</p>
+
+      <div class="steps-grid">
+        <div class="step-cell">
+          <span class="step-num">01</span>
+          <h3 class="step-title">State Intent</h3>
+          <p class="step-desc">You describe the task in plain language — no special syntax required.</p>
+        </div>
+        <div class="step-cell">
+          <span class="step-num">02</span>
+          <h3 class="step-title">Select a Rite</h3>
+          <p class="step-desc">Pick from twelve established prompting techniques, each suited to different problems.</p>
+        </div>
+        <div class="step-cell">
+          <span class="step-num">03</span>
+          <h3 class="step-title">Codex Forges</h3>
+          <p class="step-desc">Your intent is wrapped in the scaffolding, structure, and instructions that technique requires.</p>
+        </div>
+        <div class="step-cell">
+          <span class="step-num">04</span>
+          <h3 class="step-title">Copy &amp; Run</h3>
+          <p class="step-desc">Paste the finished prompt into any model. Nothing is stored, logged, or sent anywhere.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- COLOPHON / FOOTER -->
+  <footer class="colophon">
+    <div class="frame">
+      <div class="colophon-grid">
+        <div class="colophon-cell">
+          <h3 class="colophon-mark">PROMPTER<sup>&trade;</sup></h3>
+          <p class="colophon-desc">A field guide to prompting technique, forged client-side. Published by Arcanum Labs, established MMXXIV.</p>
+        </div>
+        <div class="colophon-cell">
+          <p class="colophon-label">Section</p>
+          <ul class="colophon-links">
+            <li><a href="#">The Dispatch</a></li>
+            <li><a href="#">The Twelve Rites</a></li>
+            <li><a href="#">How It Works</a></li>
+          </ul>
+        </div>
+        <div class="colophon-cell">
+          <p class="colophon-label">Reference</p>
+          <ul class="colophon-links">
+            <li><a href="#">Chain-of-Thought</a></li>
+            <li><a href="#">Tree-of-Thought</a></li>
+            <li><a href="#">ReAct</a></li>
+          </ul>
+        </div>
+        <div class="colophon-cell">
+          <p class="colophon-label">Edition</p>
+          <ul class="colophon-links">
+            <li>Vol. III, No. 12</li>
+            <li>Printed in NYC</li>
+            <li>Fig. 1.0 Release</li>
+          </ul>
+        </div>
+      </div>
+      <div class="frame" style="padding:0;">
+        <div class="legal-bar">
+          <span><b>PROMPTER&trade;</b> is a trademark of Arcanum Labs. &copy; MMXXIV&ndash;MMXXVI. All rites reserved.</span>
+          <span>Forged client-side &middot; No data leaves your browser</span>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+</main>
+
+<script>
+// ---- Masthead date ----
+document.getElementById('todayDate').textContent = new Date().toLocaleDateString('en-US', { month:'long', day:'numeric', year:'numeric' });
+
+// ---- Ticker content ----
+const TICKER_ITEMS = [
+  'ZERO-SHOT', 'ONE-SHOT', 'FEW-SHOT', 'CHAIN-OF-THOUGHT', 'TREE-OF-THOUGHT',
+  'REACT', 'SELF-CONSISTENCY', 'ROLE / PERSONA', 'LEAST-TO-MOST',
+  'GENERATED KNOWLEDGE', 'META-PROMPTING', 'PLAN-AND-SOLVE'
+];
+function buildTicker(){
+  const track = document.getElementById('tickerTrack');
+  const renderSet = ()=> TICKER_ITEMS.map(i=>`<span><span class="dot">&#9679;</span>${i}</span>`).join('');
+  track.innerHTML = renderSet() + renderSet();
+}
+buildTicker();
+</script>
 
 <script>
 const TECHNIQUES = [
@@ -699,47 +1070,53 @@ document.getElementById('addExampleBtn').addEventListener('click', addExampleRow
 // ---- Helpers ----
 function val(id){ return document.getElementById(id).value.trim(); }
 
-function wrapPersona(body){
-  const persona = val('personaInput');
-  if(!persona) return body;
-  return `You are ${persona}. Bring that expertise, vocabulary, and judgment to the task below.\n\n${body}`;
+// Persona/format are injected per-technique (each generator decides how),
+// rather than globally bolted on — so the voice stays consistent with the technique's own structure.
+function personaLine(){ return val('personaInput'); }
+function formatLine(){ return val('formatInput'); }
+
+function maybeFormatFooter(extra){
+  const format = formatLine();
+  if(!format) return '';
+  return `\n\n${extra}Output format: ${format}`;
 }
 
-function wrapFormat(body){
-  const format = val('formatInput');
-  if(!format) return body;
-  return `${body}\n\n---\nRequired output format: ${format}`;
-}
-
-function finalize(body){
-  return wrapFormat(wrapPersona(body)).trim();
-}
+function trim(s){ return s.trim(); }
 
 // ---- Template generators ----
+// Each technique below has its OWN structural shape — headers, lists, trees,
+// transcripts, memos — rather than one shared ### TASK / ### INSTRUCTIONS skeleton.
 const GENERATORS = {
 
   'zero-shot': (task)=>{
-    const body =
-`### TASK
-${task}
-
-### INSTRUCTIONS
-Answer directly and completely. Do not ask clarifying questions — make the most reasonable assumptions and state them briefly if needed.`;
-    return { prompt: finalize(body), note: "Zero-shot relies purely on the model's pretrained knowledge — no examples are given. Best for tasks the model has likely seen variations of (common writing, well-known coding patterns, general Q&A). If results feel generic or off-target, upgrade to One-Shot or Few-Shot." };
+    const persona = personaLine();
+    const format = formatLine();
+    let body = persona
+      ? `As ${persona}, ${task.charAt(0).toLowerCase()+task.slice(1)}`
+      : task;
+    body += `\n\nAnswer directly and completely — don't ask clarifying questions. If something is ambiguous, make the most reasonable assumption and say so in one line, then proceed.`;
+    if(format) body += ` Return the result as: ${format}.`;
+    return { prompt: trim(body), note: "Zero-shot relies purely on the model's pretrained knowledge — no examples are given. Best for tasks the model has likely seen variations of (common writing, well-known coding patterns, general Q&A). If results feel generic or off-target, upgrade to One-Shot or Few-Shot." };
   },
 
   'one-shot': (task)=>{
     const exIn = val('oneShotIn') || '[example input]';
     const exOut = val('oneShotOut') || '[example output]';
-    const body =
-`### EXAMPLE
-Input: ${exIn}
-Output: ${exOut}
+    const persona = personaLine();
+    const format = formatLine();
+    let body = persona ? `(Respond in the voice of ${persona} throughout.)\n\n` : '';
+    body +=
+`Here's an example of the kind of input/output pair I'm looking for:
 
-### YOUR TASK
-Input: ${task}
-Output:`;
-    return { prompt: finalize(body), note: 'One-shot anchors the model to a single demonstrated format. Use it when you care more about *structure/tone* than about teaching a complex pattern — one good example often fixes formatting drift.' };
+  Q: ${exIn}
+  A: ${exOut}
+
+Now do the same thing for this one:
+
+  Q: ${task}
+  A:`;
+    if(format) body += ` (give the answer as ${format})`;
+    return { prompt: trim(body), note: 'One-shot anchors the model to a single demonstrated format. Use it when you care more about *structure/tone* than about teaching a complex pattern — one good example often fixes formatting drift.' };
   },
 
   'few-shot': (task)=>{
@@ -750,219 +1127,132 @@ Output:`;
       const inV = r.querySelector('.ex-in').value.trim();
       const outV = r.querySelector('.ex-out').value.trim();
       if(inV || outV){
-        examplesText += `Example ${i}:\nInput: ${inV || '[input]'}\nOutput: ${outV || '[output]'}\n\n`;
+        examplesText += `  [${i}] ${inV || '[input]'}  →  ${outV || '[output]'}\n`;
         i++;
       }
     });
     if(!examplesText){
-      examplesText = `Example 1:\nInput: [input]\nOutput: [output]\n\nExample 2:\nInput: [input]\nOutput: [output]\n\n`;
+      examplesText = `  [1] [input]  →  [output]\n  [2] [input]  →  [output]\n`;
     }
-    const body =
-`### EXAMPLES
-${examplesText.trim()}
-
-### YOUR TASK
-Input: ${task}
-Output:`;
-    return { prompt: finalize(body), note: `Few-shot teaches the model a pattern from ${i-1>0?i-1:2} demonstrations. The more consistent and representative your examples are, the more reliable the output. Keep examples diverse enough to cover edge cases, but consistent in format.` };
+    const persona = personaLine();
+    const format = formatLine();
+    let body = `Pattern (study these ${i-1>0?i-1:2} pairs before continuing):\n\n${examplesText}\nMatch that exact pattern — same structure, same tone, same level of detail. Don't introduce a new pattern.\n\n`;
+    if(persona) body += `Apply the judgment of ${persona} while you do this.\n\n`;
+    body += `  [${i}] ${task}  →  ?`;
+    if(format) body += `\n\n(final output should follow: ${format})`;
+    return { prompt: trim(body), note: `Few-shot teaches the model a pattern from ${i-1>0?i-1:2} demonstrations. The more consistent and representative your examples are, the more reliable the output. Keep examples diverse enough to cover edge cases, but consistent in format.` };
   },
 
   'cot': (task)=>{
-    const body =
-`### TASK
-${task}
-
-### INSTRUCTIONS
-Think through this step-by-step before giving your final answer. Walk through your reasoning explicitly — break the problem into logical steps, verify each step makes sense, then arrive at a conclusion.
-
-Reasoning:
-1.
-2.
-3.
-
-Final Answer:`;
-    return { prompt: finalize(body), note: "Chain-of-Thought is most powerful for arithmetic, logic, multi-step reasoning, and anything where \"jumping to the answer\" tends to produce errors. Consider adding \"Let's think step by step\" verbatim — it remains a strong trigger phrase even in modern models." };
+    const persona = personaLine();
+    const format = formatLine();
+    let body = persona ? `You are ${persona}.\n\n` : '';
+    body += `${task}\n\nLet's think step by step. Walk through your reasoning out loud, one logical move at a time — don't skip ahead. After each step, briefly check that it actually follows from the one before it.\n\n  Step 1 →\n  Step 2 →\n  Step 3 →\n  (continue as needed)\n\nOnce the reasoning holds together, give the answer on its own line:\n\n  Answer:`;
+    if(format) body += ` (formatted as ${format})`;
+    return { prompt: trim(body), note: "Chain-of-Thought is most powerful for arithmetic, logic, multi-step reasoning, and anything where \"jumping to the answer\" tends to produce errors. The phrase \"let's think step by step\" remains a strong trigger even in modern models." };
   },
 
   'tot': (task)=>{
     const branches = parseInt(val('totBranches')) || 3;
-    let branchBlock = '';
+    const persona = personaLine();
+    const format = formatLine();
+    let tree = `PROBLEM\n${task}\n`;
     for(let b=1; b<=branches; b++){
-      branchBlock += `**Branch ${b}:**\n- Approach:\n- Step-by-step reasoning:\n- Resulting answer:\n- Confidence (1-10):\n\n`;
+      const isLast = b === branches;
+      const connector = isLast ? '└─' : '├─';
+      const pipe = isLast ? '  ' : '│ ';
+      tree += `${connector} BRANCH ${b} — take a genuinely different approach or assumption here, not a rephrasing\n`;
+      tree += `${pipe}   ├─ reasoning:\n`;
+      tree += `${pipe}   ├─ resulting answer:\n`;
+      tree += `${pipe}   └─ confidence (1–10):\n`;
     }
-    const body =
-`### TASK
-${task}
-
-### INSTRUCTIONS
-Explore ${branches} distinct reasoning paths (branches) to solve this problem independently. For each branch, take a genuinely different approach or assumption — don't just rephrase the same idea.
-
-${branchBlock.trim()}
-
-### EVALUATION
-Compare all branches above. Identify flaws or weak assumptions in each. Then select — or synthesize from — the strongest branch(es) to produce one final, well-justified answer.
-
-Final Answer:`;
-    return { prompt: finalize(body), note: "Tree-of-Thought trades tokens for robustness — it's best reserved for genuinely hard problems (planning, puzzles, ambiguous design decisions) where a single reasoning path is prone to tunnel vision. Increase branches for higher-stakes or more ambiguous problems." };
+    let body = persona ? `You are ${persona}, evaluating this from multiple angles.\n\n` : '';
+    body += `Don't solve this in one pass. Instead, grow out ${branches} independent reasoning branches first, fill in every leaf below, then judge them:\n\n${tree}\nNow step back. Compare all ${branches} branches side by side — where do they disagree, and which assumptions are weakest? Select or merge the strongest branch(es) into one final, defensible answer.\n\nFINAL ANSWER:`;
+    if(format) body += ` (as ${format})`;
+    return { prompt: trim(body), note: "Tree-of-Thought trades tokens for robustness — it's best reserved for genuinely hard problems (planning, puzzles, ambiguous design decisions) where a single reasoning path is prone to tunnel vision. Increase branches for higher-stakes or more ambiguous problems." };
   },
 
   'react': (task)=>{
-    const tools = val('reactTools') || '[tool_1, tool_2, ...]';
-    const body =
-`### TASK
-${task}
-
-### AVAILABLE TOOLS
-${tools}
-
-### INSTRUCTIONS
-Solve this using interleaved Thought / Action / Observation steps. At each step:
-- Thought: reason about what you currently know and what you need next.
-- Action: call exactly one tool from the list above, with explicit inputs. Use the format: Action: tool_name[input]
-- Observation: (this will be filled in with the tool's result)
-
-Repeat the Thought → Action → Observation loop until you have enough information, then give a Final Answer.
-
-Thought 1:
-Action 1:
-Observation 1:
-
-Thought 2:
-Action 2:
-Observation 2:
-
-...
-
-Final Answer:`;
-    return { prompt: finalize(body), note: 'ReAct is designed for agentic / tool-using setups — it needs an execution harness that actually runs the Action steps and feeds back real Observations. Without a harness, the model will simulate tool calls, which is useful for design/testing but not real tool execution.' };
+    const tools = val('reactTools') || 'tool_1, tool_2, ...';
+    const toolList = tools.split(',').map(t=>t.trim()).filter(Boolean);
+    const persona = personaLine();
+    const format = formatLine();
+    let body = persona ? `Role: ${persona}\n` : '';
+    body += `Goal: ${task}\n\nTools available: [${toolList.join(', ')}]\n\nRun this as a loop. Each cycle has exactly three lines — don't merge them, don't skip one:\n\n`;
+    body += `  Thought: <what you know so far, what's still missing>\n  Action: <one_tool_name>[<input>]\n  Observation: <result — left blank for the tool runner to fill in>\n\n`;
+    body += `Keep looping until you don't need another Observation, then close with:\n\n  Thought: I now have enough to answer.\n  Final Answer: <answer>`;
+    if(format) body += `\n\n(Final Answer should be ${format})`;
+    body += `\n\n— begin —\nThought:`;
+    return { prompt: trim(body), note: 'ReAct is designed for agentic / tool-using setups — it needs an execution harness that actually runs the Action steps and feeds back real Observations. Without a harness, the model will simulate tool calls, which is useful for design/testing but not real tool execution.' };
   },
 
   'self-consistency': (task)=>{
-    const body =
-`### TASK
-${task}
-
-### INSTRUCTIONS
-This task will be solved multiple times independently, each time reasoning step-by-step from scratch without referencing other attempts.
-
-Attempt:
-Reasoning:
-1.
-2.
-3.
-Answer:
-
----
-(Repeat this attempt 3-5 times with fresh reasoning, varying your approach slightly each time. Then:)
-
-### AGGREGATION
-Compare all attempts' final answers. Report the most consistent / majority answer as the final result. If answers diverge significantly, explain why and use judgment to pick the most defensible one.
-
-Final Answer:`;
-    return { prompt: finalize(body), note: 'Self-Consistency is normally run by sampling the model N times at higher temperature (outside a single prompt) and voting on the results programmatically. This single-prompt version simulates that inside one response — for true self-consistency, run this prompt multiple times via API and aggregate the answers yourself.' };
+    const persona = personaLine();
+    const format = formatLine();
+    let body = persona ? `(${persona} — reasoning fresh each time, no peeking at prior runs.)\n\n` : '';
+    body += `TASK: ${task}\n\nSolve this 5 separate times below. Each run is independent — reason from scratch, don't reference the other runs, and let your approach vary naturally between them.\n\n`;
+    for(let r=1; r<=5; r++){
+      body += `  ── Run ${r} ──\n  reasoning:\n  answer:\n\n`;
+    }
+    body += `── Tally ──\nLook across all 5 answers. Which one shows up most? If they mostly agree, that's your answer. If they split, use judgment to pick the most defensible one and say why the others likely went wrong.\n\nFINAL ANSWER:`;
+    if(format) body += ` (${format})`;
+    return { prompt: trim(body), note: 'Self-Consistency is normally run by sampling the model N times at higher temperature (outside a single prompt) and voting on the results programmatically. This single-prompt version simulates that inside one response — for true self-consistency, run this prompt multiple times via API and aggregate the answers yourself.' };
   },
 
   'persona': (task)=>{
     const persona = val('personaInput') || '[a relevant expert role — fill this in above]';
-    const body =
-`You are ${persona}.
-
-Bring the specific expertise, standards, and judgment of that role to everything below — including the vocabulary you use, the risks you flag, and the level of rigor you apply.
-
-### TASK
-${task}
-
-### INSTRUCTIONS
-Respond as this expert would: thorough where it matters, terse where it doesn't, and willing to flag concerns a non-expert might miss.`;
-    return { prompt: body.trim(), note: 'Persona prompting shapes *judgment*, not just tone — a strong persona will change what the model considers important, not just how it phrases things. Be specific ("a skeptical senior security auditor" beats "a security expert").' };
+    const format = formatLine();
+    let body = `You are ${persona} — not an AI playing a role, but actually that person, with their instincts, blind spots, and standards intact.\n\nSomeone just handed you this:\n\n  "${task}"\n\nReact the way ${persona} actually would: which parts would you take seriously, which would you wave off, what would you ask about before going further, what's the thing a non-expert wouldn't even think to flag? Let your vocabulary, pacing, and priorities come from the role, not from a generic helpful-assistant voice.`;
+    if(format) body += `\n\nWhen you do answer, give it as: ${format}.`;
+    return { prompt: trim(body), note: 'Persona prompting shapes *judgment*, not just tone — a strong persona changes what the model considers important, not just how it phrases things. Be specific ("a skeptical senior security auditor" beats "a security expert").' };
   },
 
   'least-to-most': (task)=>{
-    const body =
-`### TASK
-${task}
-
-### INSTRUCTIONS
-Solve this using least-to-most decomposition:
-
-Step 1 — Decompose: Break this task into an ordered list of simpler sub-problems, from most foundational to most dependent. List them.
-
-Step 2 — Solve sequentially: Solve sub-problem 1 first, using only what's given. Then solve sub-problem 2, explicitly using the result of sub-problem 1. Continue through all sub-problems in order, each building on the previous results.
-
-Step 3 — Compose: Combine the sub-problem solutions into the final answer to the original task.
-
-Sub-problems:
-1.
-2.
-3.
-
-Sequential solutions:
-(solve each in order, referencing prior results)
-
-Final Answer:`;
-    return { prompt: finalize(body), note: "Least-to-Most shines when a task has natural prerequisite structure (you must understand X before Y makes sense) — it's gentler and more reliable than Tree-of-Thought for tasks that are sequential rather than exploratory." };
+    const persona = personaLine();
+    const format = formatLine();
+    let body = persona ? `As ${persona}:\n\n` : '';
+    body += `${task}\n\nDon't solve this directly. First break it into an ordered staircase of sub-problems — each one a prerequisite for the next, simplest first:\n\n  sub-problem 1 (foundation):\n  sub-problem 2 (builds on 1):\n  sub-problem 3 (builds on 1+2):\n  (add more steps if the task needs them)\n\nNow climb the staircase one step at a time. Solve sub-problem 1 using only what's given. Solve sub-problem 2 using the given info AND your answer to 1. Keep going — each answer should explicitly lean on the ones before it, not start fresh.\n\n  ↳ solving 1...\n  ↳ solving 2 (using 1)...\n  ↳ solving 3 (using 1+2)...\n\nLast step: fold all the sub-answers into one final answer to the original task.\n\nFINAL ANSWER:`;
+    if(format) body += ` (${format})`;
+    return { prompt: trim(body), note: "Least-to-Most shines when a task has natural prerequisite structure (you must understand X before Y makes sense) — it's gentler and more reliable than Tree-of-Thought for tasks that are sequential rather than exploratory." };
   },
 
   'generated-knowledge': (task)=>{
-    const body =
-`### STAGE 1 — GENERATE KNOWLEDGE
-Before answering, list the key facts, principles, constraints, or domain knowledge that are directly relevant to the task below. Be specific and only include things you're confident are true.
-
-Task (for context): ${task}
-
-Relevant knowledge:
--
--
--
-
-### STAGE 2 — ANSWER USING THAT KNOWLEDGE
-Now, using only the knowledge generated above (plus sound reasoning), complete the task:
-
-${task}
-
-Final Answer:`;
-    return { prompt: finalize(body), note: 'Generated Knowledge reduces hallucination risk by forcing an explicit, checkable "what do I actually know" step before the model commits to an answer. Especially useful for factual or domain-specific tasks — you can review Stage 1 for errors before trusting Stage 2.' };
+    const persona = personaLine();
+    const format = formatLine();
+    let body = `╔═══════════════════════════════════╗\n║  DOCUMENT 1 — KNOWLEDGE DUMP       ║\n╚═══════════════════════════════════╝\n\n`;
+    body += `Before touching the actual task, write down everything you actually know that's relevant to it. Only things you're confident are true — no guessing to fill space.\n\n  context: ${task}\n\n  - \n  - \n  - \n\n`;
+    body += `╔═══════════════════════════════════╗\n║  DOCUMENT 2 — THE TASK ITSELF       ║\n╚═══════════════════════════════════╝\n\n`;
+    if(persona) body += `(as ${persona})\n\n`;
+    body += `Now, using ONLY what you wrote in Document 1 plus sound reasoning — no new claims sneaking in — complete this:\n\n  ${task}\n\nFINAL ANSWER:`;
+    if(format) body += ` (${format})`;
+    return { prompt: trim(body), note: 'Generated Knowledge reduces hallucination risk by forcing an explicit, checkable "what do I actually know" step before the model commits to an answer. Especially useful for factual or domain-specific tasks — you can review Document 1 for errors before trusting Document 2.' };
   },
 
   'meta-prompt': (task)=>{
-    const body =
-`### STAGE 1 — DESIGN THE STRATEGY
-Before solving the task below, first design the ideal approach for tackling it. Consider: What prompting technique fits best (step-by-step reasoning, examples, decomposition, role expertise)? What pitfalls are likely? What would a great answer need to include?
-
-Task: ${task}
-
-Strategy:
--
--
--
-
-### STAGE 2 — EXECUTE THE STRATEGY
-Now follow your own strategy above to actually complete the task. Show your reasoning where it matters, then give the final answer.
-
-Final Answer:`;
-    return { prompt: finalize(body), note: "Meta-prompting asks the model to be its own prompt engineer first. It tends to help most on ambiguous or unfamiliar task types, where the \"right way to approach this\" isn't obvious — letting the model plan its method before committing reduces wasted first attempts." };
+    const persona = personaLine();
+    const format = formatLine();
+    let body = `MEMO — write this to yourself before you start.\n\n`;
+    body += `The task: ${task}\n\n`;
+    body += `Before doing anything, think like a prompt strategist for a second: What's actually the best way to approach THIS specific task — step-by-step reasoning? worked examples? breaking it into smaller pieces? someone's domain expertise? What's most likely to go wrong if you just dive in? What would make the difference between an okay answer and a great one here?\n\n`;
+    if(persona) body += `(keep in mind: ${persona} would weigh this differently than a generalist would)\n\n`;
+    body += `  strategy notes:\n  - \n  - \n  - \n\n`;
+    body += `— end memo —\n\nNow actually do it. Follow the strategy you just wrote, not a generic approach. Show your work where the strategy calls for it, skip ceremony where it doesn't.\n\nFINAL ANSWER:`;
+    if(format) body += ` (${format})`;
+    return { prompt: trim(body), note: "Meta-prompting asks the model to be its own prompt engineer first. It tends to help most on ambiguous or unfamiliar task types, where the \"right way to approach this\" isn't obvious — letting the model plan its method before committing reduces wasted first attempts." };
   },
 
   'plan-solve': (task)=>{
-    const body =
-`### TASK
-${task}
-
-### PHASE 1 — PLAN
-Devise a clear, ordered plan for solving this task. Do not solve anything yet — only outline the steps you will take and what each step is meant to accomplish.
-
-Plan:
-1.
-2.
-3.
-
-### PHASE 2 — SOLVE
-Now execute the plan above, one step at a time, in order. Show your work for each step. Make sure each step's output correctly feeds into the next.
-
-Execution:
-
-Final Answer:`;
-    return { prompt: finalize(body), note: 'Plan-and-Solve cleanly separates "what should I do" from "doing it" — this separation alone reduces errors versus letting the model plan and execute in a single tangled pass, especially on multi-step tasks like coding or analysis.' };
+    const persona = personaLine();
+    const format = formatLine();
+    let body = `┌─ TICKET ──────────────────────────┐\n`;
+    body += `  ${task}\n`;
+    body += `└────────────────────────────────────┘\n\n`;
+    if(persona) body += `Assigned to: ${persona}\n\n`;
+    body += `PHASE 1 — PLAN ONLY (don't solve anything yet)\n  ☐ step 1:\n  ☐ step 2:\n  ☐ step 3:\n  (add more checkboxes if needed — each one should say what it accomplishes, not just "do X")\n\n`;
+    body += `PHASE 2 — EXECUTE (work through the checklist above, in order, checking each box as you finish it — make sure each step's output actually feeds the next one)\n\n  ☑ step 1 — \n  ☑ step 2 — \n  ☑ step 3 — \n\n`;
+    body += `RESULT:`;
+    if(format) body += ` (deliver as ${format})`;
+    return { prompt: trim(body), note: 'Plan-and-Solve cleanly separates "what should I do" from "doing it" — this separation alone reduces errors versus letting the model plan and execute in a single tangled pass, especially on multi-step tasks like coding or analysis.' };
   },
 };
 
